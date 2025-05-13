@@ -2,8 +2,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Instagram, Facebook, Twitter } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Footer() {
+  const { user } = useAuth();
+  
   return (
     <footer className="bg-cutebae-light-gray pt-12 pb-8">
       <div className="container mx-auto px-4">
@@ -37,6 +40,9 @@ export default function Footer() {
               <li><Link to="/shipping" className="text-gray-600 hover:text-cutebae-coral">Shipping & Returns</Link></li>
               <li><Link to="/faq" className="text-gray-600 hover:text-cutebae-coral">FAQ</Link></li>
               <li><Link to="/size-guide" className="text-gray-600 hover:text-cutebae-coral">Size Guide</Link></li>
+              {user && (
+                <li><Link to="/admin" className="text-cutebae-coral font-medium hover:underline">Admin CMS</Link></li>
+              )}
             </ul>
           </div>
 
@@ -75,6 +81,9 @@ export default function Footer() {
           <div className="mt-4 md:mt-0 flex space-x-4 text-sm text-gray-500">
             <Link to="/privacy" className="hover:text-cutebae-coral">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-cutebae-coral">Terms of Service</Link>
+            {!user && (
+              <Link to="/admin" className="hover:text-cutebae-coral">Admin</Link>
+            )}
           </div>
         </div>
       </div>

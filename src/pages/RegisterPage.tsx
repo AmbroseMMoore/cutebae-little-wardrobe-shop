@@ -10,20 +10,30 @@ import { useToast } from '@/components/ui/use-toast';
 import { signInWithGoogle } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handleEmailRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password) {
+    if (!email || !password || !confirmPassword) {
       toast({
         title: 'Error',
-        description: 'Please provide both email and password',
+        description: 'Please fill in all fields',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (password !== confirmPassword) {
+      toast({
+        title: 'Error',
+        description: 'Passwords do not match',
         variant: 'destructive',
       });
       return;
@@ -32,22 +42,25 @@ export default function LoginPage() {
     setIsLoading(true);
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/account`,
+        }
       });
       
       if (error) throw error;
       
       toast({
-        title: 'Success',
-        description: 'You have successfully logged in',
+        title: 'Registration successful',
+        description: 'Please check your email to verify your account',
       });
       
-      navigate('/account');
+      navigate('/login');
     } catch (error: any) {
       toast({
-        title: 'Login failed',
+        title: 'Registration failed',
         description: error.message,
         variant: 'destructive',
       });
@@ -56,13 +69,13 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleGoogleRegister = async () => {
     try {
       setIsLoading(true);
       await signInWithGoogle();
     } catch (error: any) {
       toast({
-        title: 'Login failed',
+        title: 'Registration failed',
         description: error.message,
         variant: 'destructive',
       });
@@ -76,11 +89,11 @@ export default function LoginPage() {
         <div className="max-w-md mx-auto">
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl text-center">Login to Your Account</CardTitle>
-              <CardDescription className="text-center">Enter your credentials to access your account</CardDescription>
+              <CardTitle className="text-2xl text-center">Create an Account</CardTitle>
+              <CardDescription className="text-center">Sign up to start shopping with Cutebae</CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={handleEmailLogin}>
+              <form onSubmit={handleEmailRegister}>
                 <div className="space-y-4">
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
@@ -102,21 +115,22 @@ export default function LoginPage() {
                       onChange={(e) => setPassword(e.target.value)}
                     />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <label className="flex items-center">
-                      <input type="checkbox" className="h-4 w-4 text-cutebae-coral" />
-                      <span className="ml-2 text-sm">Remember me</span>
-                    </label>
-                    <Link to="/forgot-password" className="text-sm text-cutebae-coral hover:underline">
-                      Forgot password?
-                    </Link>
+                  <div>
+                    <label htmlFor="confirm-password" className="block text-sm font-medium mb-1">Confirm Password</label>
+                    <Input 
+                      id="confirm-password" 
+                      type="password" 
+                      placeholder="••••••••" 
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
                   </div>
                   <Button 
                     type="submit" 
                     className="w-full bg-cutebae-coral hover:bg-opacity-90"
                     disabled={isLoading}
                   >
-                    {isLoading ? 'Signing in...' : 'Sign in'}
+                    {isLoading ? 'Creating account...' : 'Create Account'}
                   </Button>
                 </div>
               </form>
@@ -132,18 +146,18 @@ export default function LoginPage() {
               
               <Button 
                 className="w-full bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 mt-2"
-                onClick={handleGoogleLogin}
+                onClick={handleGoogleRegister}
                 disabled={isLoading}
               >
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5 mr-2" />
-                Sign in with Google
+                Sign up with Google
               </Button>
             </CardContent>
             <CardFooter className="flex justify-center">
               <p className="text-sm text-gray-600">
-                Don't have an account?{" "}
-                <Link to="/register" className="text-cutebae-coral hover:underline font-medium">
-                  Create one now
+                Already have an account?{" "}
+                <Link to="/login" className="text-cutebae-coral hover:underline font-medium">
+                  Sign in
                 </Link>
               </p>
             </CardFooter>
