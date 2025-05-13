@@ -6,7 +6,7 @@ import { Minus, Plus, ShoppingCart } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import ProductGrid from '@/components/products/ProductGrid';
 import { useStore } from '@/contexts/StoreContext';
-import { getProductById, getProductsByCategory, Product } from '@/data/products';
+import { getProductById, getProductsByCategory } from '@/data/products';
 
 export default function ProductPage() {
   const { id } = useParams<{ id: string }>();
@@ -68,7 +68,7 @@ export default function ProductPage() {
               <span className="text-sm bg-cutebae-purple bg-opacity-20 px-3 py-1 rounded-full">{product.ageGroup}</span>
             </div>
             
-            <p className="text-2xl font-bold text-cutebae-coral mb-6">${product.price.toFixed(2)}</p>
+            <p className="text-2xl font-bold text-cutebae-coral mb-6">₹{Math.round(product.price * 83)}</p>
             
             <p className="text-gray-700 mb-8">{product.description}</p>
             
@@ -108,7 +108,7 @@ export default function ProductPage() {
             
             {/* Free shipping notice */}
             <p className="text-center text-sm text-gray-600 mt-4">
-              ✨ Free shipping on orders over $50 ✨
+              ✨ Free shipping on orders over ₹1000 ✨
             </p>
           </div>
         </div>

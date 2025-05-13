@@ -18,6 +18,9 @@ export default function ProductCard({ product }: ProductCardProps) {
     addToCart(product, 1);
   };
 
+  // Convert USD price to INR (approximate rate: 1 USD = 83 INR)
+  const priceInRupees = Math.round(product.price * 83);
+
   return (
     <Link 
       to={`/product/${product.id}`} 
@@ -46,7 +49,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             <h3 className="font-medium text-gray-900">{product.name}</h3>
             <p className="text-sm text-gray-600 mt-1">{product.category} · {product.ageGroup}</p>
           </div>
-          <p className="font-semibold text-cutebae-coral">${product.price.toFixed(2)}</p>
+          <p className="font-semibold text-cutebae-coral">₹{priceInRupees}</p>
         </div>
       </div>
     </Link>

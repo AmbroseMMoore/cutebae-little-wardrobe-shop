@@ -89,7 +89,7 @@ export const StoreProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const cartTotal = cart.reduce(
-    (total, item) => total + item.product.price * item.quantity, 
+    (total, item) => total + item.product.price * item.quantity * 83, // Convert to rupees
     0
   );
 
