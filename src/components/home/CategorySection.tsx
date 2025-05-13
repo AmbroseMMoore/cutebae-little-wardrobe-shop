@@ -17,13 +17,14 @@ export default function CategorySection() {
   return (
     <section className="py-12 bg-cutebae-light-gray">
       <div className="container mx-auto px-4">
-        <h2 className="text-3xl font-bold text-center mb-10">Shop by Category</h2>
+        <h2 className="text-2xl md:text-3xl font-bold text-center mb-4">Shop by Category</h2>
+        <div className="h-1 w-24 bg-cutebae-coral mx-auto mb-8"></div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {categories.map((category) => (
             <Link
               key={category.id}
               to={`/category/${category.id}`}
-              className="flex flex-col items-center p-4 bg-white rounded-lg shadow-sm hover:shadow-md transition-all card-hover text-center"
+              className="flex flex-col items-center p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-all card-hover text-center"
             >
               <span className="text-4xl mb-3" role="img" aria-label={category.name}>
                 {categoryIcons[category.id]}

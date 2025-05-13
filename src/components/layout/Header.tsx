@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingCart, Menu, X, Search } from 'lucide-react';
+import { ShoppingCart, Menu, X, Search, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useStore } from '@/contexts/StoreContext';
 import { categories } from '@/data/products';
@@ -15,13 +15,18 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white shadow-sm">
+    <header className="bg-white shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4">
+        {/* Top header with promotions */}
+        <div className="bg-cutebae-coral text-white text-center py-1 text-sm font-medium -mx-4">
+          Free Shipping on Orders Above ₹599 | Shop Now
+        </div>
+        
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center">
             <div className="text-2xl font-bold text-cutebae-coral flex items-center">
-              <span className="text-3xl mr-1">👶</span>
+              <img src="/placeholder.svg" alt="Cutebae" className="h-10 mr-2" />
               <span>Cutebae</span>
             </div>
           </Link>
@@ -32,7 +37,7 @@ export default function Header() {
               <Link
                 key={category.id}
                 to={`/category/${category.id}`}
-                className="text-gray-700 hover:text-cutebae-coral font-medium"
+                className="text-gray-700 hover:text-cutebae-coral font-medium text-sm uppercase tracking-wider"
               >
                 {category.name}
               </Link>
@@ -40,9 +45,13 @@ export default function Header() {
           </nav>
 
           {/* Search and Cart */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-5">
             <Link to="/search" className="text-gray-700 hover:text-cutebae-coral">
               <Search size={22} />
+            </Link>
+            
+            <Link to="/account" className="text-gray-700 hover:text-cutebae-coral">
+              <User size={22} />
             </Link>
             
             <Link to="/cart" className="relative">
@@ -74,7 +83,7 @@ export default function Header() {
                 <Link
                   key={category.id}
                   to={`/category/${category.id}`}
-                  className="text-gray-700 hover:text-cutebae-coral font-medium px-2 py-1"
+                  className="text-gray-700 hover:text-cutebae-coral font-medium uppercase text-sm px-2 py-1"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   {category.name}

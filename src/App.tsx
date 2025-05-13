@@ -11,6 +11,8 @@ import CategoryPage from "./pages/CategoryPage";
 import CartPage from "./pages/CartPage";
 import SearchPage from "./pages/SearchPage";
 import NotFound from "./pages/NotFound";
+import AccountPage from "./pages/AccountPage";
+import LoginPage from "./pages/LoginPage";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +29,8 @@ const App = () => (
             <Route path="/category/:id" element={<CategoryPage />} />
             <Route path="/cart" element={<CartPage />} />
             <Route path="/search" element={<SearchPage />} />
+            <Route path="/account" element={<AccountPage />} />
+            <Route path="/login" element={<LoginPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
