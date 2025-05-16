@@ -1,15 +1,26 @@
 
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
+import { createRoot } from 'react-dom/client';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import App from './App.tsx';
+import './index.css';
 
-// Check if Supabase environment variables are missing
-const missingSupabaseEnvVars = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
+// API environment check
+const missingApiUrl = !import.meta.env.VITE_API_URL;
+
+// Create a QueryClient for React Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 30000,
+    },
+  },
+});
 
 // Create a wrapper component to show a warning banner if needed
 const AppWithWarningBanner = () => (
   <>
-    {missingSupabaseEnvVars && (
+    {missingApiUrl && (
       <div style={{
         position: 'fixed',
         top: 0,
@@ -22,10 +33,12 @@ const AppWithWarningBanner = () => (
         zIndex: 9999,
         fontSize: '14px'
       }}>
-        ⚠️ Supabase environment variables are missing. The app is running in development mode with limited functionality.
+        ⚠️ API URL environment variable is missing. The app will attempt to connect to localhost:5000.
       </div>
     )}
-    <App />
+    <QueryClientProvider client={queryClient}>
+      <App />
+    </QueryClientProvider>
   </>
 );
 

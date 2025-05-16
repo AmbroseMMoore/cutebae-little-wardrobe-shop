@@ -1,73 +1,128 @@
-# Welcome to your Lovable project
 
-## Project info
+# Cutebae - Kids Fashion Store
 
-**URL**: https://lovable.dev/projects/3dc676dd-8893-44e3-96ec-b1a01488d2f6
+A full-stack e-commerce application built with React, Express, and PostgreSQL.
 
-## How can I edit this code?
+## Features
 
-There are several ways of editing your application.
+- User authentication (Email/Password and Google OAuth)
+- Product browsing with filters
+- Shopping cart functionality
+- Order management
+- Admin dashboard for product and order management
+- Wishlist functionality
+- Returns processing
 
-**Use Lovable**
+## Tech Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/3dc676dd-8893-44e3-96ec-b1a01488d2f6) and start prompting.
+### Frontend
+- React (with JSX)
+- Vanilla CSS for styling
+- React Router for navigation
+- React Query for data fetching
 
-Changes made via Lovable will be committed automatically to this repo.
+### Backend
+- Express.js
+- PostgreSQL database
+- JWT for authentication
+- Passport.js for OAuth
 
-**Use your preferred IDE**
+## Getting Started
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prerequisites
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Node.js (v14 or newer)
+- PostgreSQL (v12 or newer)
 
-Follow these steps:
+### Setup
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+1. Clone the repository:
+   ```
+   git clone https://github.com/yourusername/cutebae.git
+   cd cutebae
+   ```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2. Install dependencies:
+   ```
+   # Install frontend dependencies
+   npm install
+   
+   # Install backend dependencies
+   cd server
+   npm install
+   cd ..
+   ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+3. Set up environment variables:
+   ```
+   # Copy example env files
+   cp .env.example .env
+   ```
+   Edit the `.env` file with your database and OAuth credentials.
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+4. Create database:
+   ```
+   cd server
+   npm run db:create
+   cd ..
+   ```
 
-**Edit a file directly in GitHub**
+5. Run database migrations:
+   ```
+   # Import the schema
+   psql -d cutebae -f server/db/schema.sql
+   ```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+### Running the Application
 
-**Use GitHub Codespaces**
+1. Start the backend server:
+   ```
+   cd server
+   npm run dev
+   ```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+2. In a new terminal, start the frontend:
+   ```
+   npm run dev
+   ```
 
-## What technologies are used for this project?
+3. Open your browser and navigate to `http://localhost:5173`
 
-This project is built with:
+## Development
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### Backend API Structure
 
-## How can I deploy this project?
+- `/api/auth` - Authentication routes
+- `/api/products` - Product management
+- `/api/orders` - Order processing
+- `/api/users` - User profile and wishlist management
 
-Simply open [Lovable](https://lovable.dev/projects/3dc676dd-8893-44e3-96ec-b1a01488d2f6) and click on Share -> Publish.
+### Database Schema
 
-## Can I connect a custom domain to my Lovable project?
+- `users` - User accounts and profiles
+- `products` - Product catalog
+- `product_variants` - Product variations (size, color)
+- `orders` - Customer orders
+- `order_items` - Items within each order
+- `returns` - Product returns
+- `return_items` - Items being returned
+- `wishlists` - User wishlist items
 
-Yes, you can!
+## Deployment
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Frontend
+1. Build the React application:
+   ```
+   npm run build
+   ```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+2. Deploy the contents of the `dist` folder to your hosting provider.
+
+### Backend
+1. Set up a PostgreSQL database on a cloud provider.
+2. Update environment variables for production.
+3. Deploy the server code to a hosting service like Heroku, Render, or AWS.
+
+## License
+
+This project is licensed under the MIT License.

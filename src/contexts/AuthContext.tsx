@@ -1,119 +1,102 @@
 
-import React, { createContext, useState, useEffect, useContext } from 'react';
-import { User } from '@supabase/supabase-js';
-import { useToast } from '@/components/ui/use-toast';
-import { supabase } from '@/lib/supabase';
-import { getCurrentUser, getUserProfile } from '@/lib/auth';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { authAPI } from '../lib/api';
 
-type UserProfile = {
-  user_id: string;
-  name?: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  pincode?: string;
-  created_at?: string;
-  updated_at?: string;
-};
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role?: string;
+}
 
 interface AuthContextType {
   user: User | null;
-  profile: UserProfile | null;
   isLoading: boolean;
-  refreshProfile: () => Promise<void>;
-  signOut: () => Promise<void>;
+  isAdmin: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<void>;
+  logout: () => void;
+  googleLogin: () => void;
 }
 
-export const AuthContext = createContext<AuthContextType>({
-  user: null,
-  profile: null,
-  isLoading: true,
-  refreshProfile: async () => {},
-  signOut: async () => {},
-});
+const AuthContext = createContext<AuthContextType>({} as AuthContextType);
 
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
-
-  const refreshProfile = async () => {
-    if (!user) return;
-    
-    try {
-      const userProfile = await getUserProfile(user.id);
-      setProfile(userProfile);
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-    }
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-      setUser(null);
-      setProfile(null);
-      toast({
-        title: 'Signed out successfully',
-        description: 'You have been signed out of your account.',
-      });
-    } catch (error: any) {
-      toast({
-        title: 'Sign out failed',
-        description: error.message,
-        variant: 'destructive',
-      });
-    }
-  };
 
   useEffect(() => {
-    const initAuth = async () => {
-      setIsLoading(true);
-      try {
-        const currentUser = await getCurrentUser();
-        setUser(currentUser);
-        
-        if (currentUser) {
-          const userProfile = await getUserProfile(currentUser.id);
-          setProfile(userProfile);
-        }
-      } catch (error) {
-        console.error('Error initializing auth:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initAuth();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user || null);
-      
-      if (session?.user) {
-        try {
-          const userProfile = await getUserProfile(session.user.id);
-          setProfile(userProfile);
-        } catch (error) {
-          console.error('Error fetching user profile on auth change:', error);
-        }
-      } else {
-        setProfile(null);
-      }
-    });
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
+    // Check URL for token (for OAuth redirect)
+    const url = new URL(window.location.href);
+    const token = url.searchParams.get('token');
+    
+    if (token) {
+      localStorage.setItem('token', token);
+      window.history.replaceState({}, document.title, url.pathname);
+    }
+    
+    loadUser();
   }, []);
 
+  const loadUser = async () => {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
+    
+    try {
+      setIsLoading(true);
+      const { data } = await authAPI.getMe();
+      setUser(data);
+    } catch (error) {
+      console.error('Failed to load user', error);
+      localStorage.removeItem('token');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const login = async (email: string, password: string) => {
+    setIsLoading(true);
+    
+    try {
+      const { data } = await authAPI.login({ email, password });
+      localStorage.setItem('token', data.token);
+      setUser(data.user);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const register = async (name: string, email: string, password: string) => {
+    setIsLoading(true);
+    
+    try {
+      const { data } = await authAPI.register({ name, email, password });
+      localStorage.setItem('token', data.token);
+      setUser(data.user);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    setUser(null);
+  };
+
+  const googleLogin = () => {
+    authAPI.googleLogin();
+  };
+
+  const isAdmin = user?.role === 'admin';
+
   return (
-    <AuthContext.Provider
-      value={{ user, profile, isLoading, refreshProfile, signOut: handleSignOut }}
-    >
+    <AuthContext.Provider value={{ user, isLoading, isAdmin, login, register, logout, googleLogin }}>
       {children}
     </AuthContext.Provider>
   );
