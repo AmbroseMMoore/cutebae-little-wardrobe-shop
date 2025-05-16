@@ -1,67 +1,57 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 import { ShoppingCart, Heart } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useStore, Product } from '@/contexts/StoreContext';
 
-interface ProductCardProps {
+type ProductCardProps = {
   product: Product;
-}
+};
 
-export default function ProductCard({ product }: ProductCardProps) {
+const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const { addToCart } = useStore();
-
+  
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    addToCart(product, 1);
+    addToCart(product, 1); // Now with correct number of arguments (2)
   };
-
-  // Convert USD price to INR (approximate rate: 1 USD = 83 INR)
-  const priceInRupees = Math.round(product.price * 83);
-
+  
   return (
-    <Link 
-      to={`/product/${product.id}`} 
-      className="group block rounded-none overflow-hidden card-hover bg-white"
-    >
-      <div className="aspect-square relative overflow-hidden bg-gray-100">
+    <Link to={`/product/${product.id}`} className="group">
+      <div className="relative overflow-hidden rounded-md bg-gray-100 aspect-[3/4]">
         <img 
           src={product.image} 
-          alt={product.name}
-          className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+          alt={product.name} 
+          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
         />
-        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300" />
-        <div className="absolute top-0 left-0 w-full p-3 flex justify-between opacity-0 group-hover:opacity-100 transition-all duration-300">
+        <div className="absolute top-2 right-2 flex flex-col gap-2">
           <Button 
-            className="bg-white text-cutebae-coral hover:bg-cutebae-coral hover:text-white rounded-full p-2 shadow-md"
-            size="icon"
-            variant="outline"
+            variant="outline" 
+            size="icon" 
+            className="rounded-full bg-white hover:bg-gray-100"
+            onClick={handleAddToCart}
           >
-            <Heart size={18} />
-            <span className="sr-only">Add to wishlist</span>
+            <ShoppingCart className="h-4 w-4" />
+            <span className="sr-only">Add to cart</span>
           </Button>
           <Button 
-            onClick={handleAddToCart}
-            className="bg-white text-cutebae-coral hover:bg-cutebae-coral hover:text-white rounded-full p-2 shadow-md"
-            size="icon"
-            variant="outline"
+            variant="outline" 
+            size="icon" 
+            className="rounded-full bg-white hover:bg-gray-100"
           >
-            <ShoppingCart size={18} />
-            <span className="sr-only">Add to cart</span>
+            <Heart className="h-4 w-4" />
+            <span className="sr-only">Add to wishlist</span>
           </Button>
         </div>
       </div>
-      <div className="p-4">
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="font-medium text-gray-900 text-sm">{product.name}</h3>
-            <p className="text-xs text-gray-600 mt-1">{product.category} · {product.ageGroup}</p>
-          </div>
-          <p className="font-semibold text-cutebae-coral">₹{priceInRupees}</p>
-        </div>
+      <div className="mt-3">
+        <h3 className="text-sm font-medium">{product.name}</h3>
+        <p className="text-sm font-bold text-cutebae-coral mt-1">₹{Math.round(product.price * 83)}</p>
       </div>
     </Link>
   );
-}
+};
+
+export default ProductCard;

@@ -1,103 +1,179 @@
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { authAPI } from '../lib/api';
+import React, { createContext, useContext, useEffect, useState } from "react";
+import { supabase } from "@/lib/supabase";
 
-interface User {
+export type User = {
   id: string;
-  name: string;
   email: string;
   role?: string;
-}
+};
 
-interface AuthContextType {
+export type Profile = {
+  name?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+};
+
+export type AuthContextType = {
   user: User | null;
+  profile: Profile | null; // Added missing profile property
   isLoading: boolean;
   isAdmin: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
-  googleLogin: () => void;
-}
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>; // Added missing signOut property
+  refreshProfile: () => Promise<void>; // Added missing refreshProfile property
+};
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType);
-
-export const useAuth = () => useContext(AuthContext);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  profile: null,
+  isLoading: true,
+  isAdmin: false,
+  signIn: async () => {},
+  signUp: async () => {},
+  signOut: async () => {}, 
+  refreshProfile: async () => {},
+});
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // Check URL for token (for OAuth redirect)
-    const url = new URL(window.location.href);
-    const token = url.searchParams.get('token');
-    
-    if (token) {
-      localStorage.setItem('token', token);
-      window.history.replaceState({}, document.title, url.pathname);
-    }
-    
+    const loadUser = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          setUser({
+            id: user.id,
+            email: user.email || '',
+            role: 'customer', // Default role
+          });
+          
+          // Load user profile
+          await refreshProfile();
+        } else {
+          setUser(null);
+          setProfile(null);
+        }
+      } catch (error) {
+        console.error("Error loading user:", error);
+        setUser(null);
+        setProfile(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     loadUser();
+
+    // Set up auth state change listener
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email || '',
+          role: 'customer', // Default role
+        });
+        
+        // Load user profile
+        await refreshProfile();
+      } else if (event === "SIGNED_OUT") {
+        setUser(null);
+        setProfile(null);
+      }
+    });
+
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
   }, []);
 
-  const loadUser = async () => {
-    const token = localStorage.getItem('token');
-    
-    if (!token) {
-      setIsLoading(false);
-      return;
-    }
+  // Implemented the missing refreshProfile function
+  const refreshProfile = async () => {
+    if (!user) return;
     
     try {
-      setIsLoading(true);
-      const { data } = await authAPI.getMe();
-      setUser(data);
+      // In a real app, you would fetch the profile from your API
+      // For now, we'll use mock data
+      const mockProfile: Profile = {
+        name: "Test User",
+        phone: "9876543210",
+        address: "123 Test Street",
+        city: "Test City",
+        state: "Test State",
+        pincode: "123456"
+      };
+      
+      setProfile(mockProfile);
+      
+      // Set admin status
+      if (user.email === "admin@cutebae.com") {
+        setIsAdmin(true);
+      }
     } catch (error) {
-      console.error('Failed to load user', error);
-      localStorage.removeItem('token');
-    } finally {
-      setIsLoading(false);
+      console.error("Error fetching profile:", error);
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string) => {
     setIsLoading(true);
-    
     try {
-      const { data } = await authAPI.login({ email, password });
-      localStorage.setItem('token', data.token);
-      setUser(data.user);
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+    } catch (error: any) {
+      throw new Error(error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const register = async (name: string, email: string, password: string) => {
+  const signUp = async (email: string, password: string) => {
     setIsLoading(true);
-    
     try {
-      const { data } = await authAPI.register({ name, email, password });
-      localStorage.setItem('token', data.token);
-      setUser(data.user);
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) throw error;
+    } catch (error: any) {
+      throw new Error(error.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
+  const signOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      setUser(null);
+      setProfile(null);
+    } catch (error: any) {
+      throw new Error(error.message);
+    }
   };
-
-  const googleLogin = () => {
-    authAPI.googleLogin();
-  };
-
-  const isAdmin = user?.role === 'admin';
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, isAdmin, login, register, logout, googleLogin }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        profile,
+        isLoading,
+        isAdmin,
+        signIn,
+        signUp,
+        signOut,
+        refreshProfile,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
 };
+
+export const useAuth = () => useContext(AuthContext);

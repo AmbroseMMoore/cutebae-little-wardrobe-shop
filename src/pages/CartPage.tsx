@@ -1,26 +1,53 @@
 
-import React from 'react';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Trash2, ShoppingBag, ChevronRight, RefreshCcw } from 'lucide-react';
 import Layout from '@/components/layout/Layout';
 import { Button } from '@/components/ui/button';
-import { Trash2, Plus, Minus, ShoppingBag } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { useStore } from '@/contexts/StoreContext';
-import { Link } from 'react-router-dom';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function CartPage() {
-  const { cart, removeFromCart, updateQuantity, cartTotal, clearCart } = useStore();
+  const { cart, removeFromCart, updateQuantity, getCartTotal, clearCart } = useStore();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [coupon, setCoupon] = useState('');
+  
+  const subtotal = getCartTotal();
+  const shippingCost = subtotal > 1000 ? 0 : 99;
+  const total = subtotal + shippingCost;
+  
+  const handleQuantityChange = (productId: string, newQuantity: number) => {
+    updateQuantity(productId, newQuantity);
+  };
+  
+  const handleRemoveItem = (productId: string) => {
+    removeFromCart(productId);
+  };
+  
+  const handleCheckout = () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    
+    navigate('/checkout');
+  };
   
   if (cart.length === 0) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-16 text-center">
           <div className="max-w-md mx-auto">
-            <ShoppingBag className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-            <h2 className="text-2xl font-bold mb-4">Your cart is empty</h2>
-            <p className="text-gray-600 mb-8">Looks like you haven't added anything to your cart yet.</p>
-            <Button asChild>
-              <Link to="/">Start Shopping</Link>
-            </Button>
+            <ShoppingBag className="w-16 h-16 mx-auto text-gray-400" />
+            <h2 className="text-3xl font-bold mt-4 mb-2">Your cart is empty</h2>
+            <p className="text-gray-600 mb-8">Looks like you haven't added any products to your cart yet.</p>
+            <Link to="/products">
+              <Button className="bg-cutebae-coral hover:bg-opacity-90">
+                Browse Products
+              </Button>
+            </Link>
           </div>
         </div>
       </Layout>
@@ -30,116 +57,121 @@ export default function CartPage() {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
-        <h1 className="text-3xl font-bold mb-8">Your Shopping Cart</h1>
+        <h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Cart Items */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           <div className="lg:col-span-2">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Product</TableHead>
-                  <TableHead className="text-right">Price</TableHead>
-                  <TableHead className="text-center">Quantity</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {cart.map((item) => {
-                  const priceInRupees = Math.round(item.product.price * 83);
-                  const itemTotalInRupees = Math.round(item.product.price * item.quantity * 83);
-                  
-                  return (
-                    <TableRow key={item.product.id}>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <div className="h-16 w-16 bg-gray-100 rounded overflow-hidden mr-4">
-                            <img 
-                              src={item.product.image} 
-                              alt={item.product.name}
-                              className="h-full w-full object-cover object-center"
-                            />
-                          </div>
-                          <Link to={`/product/${item.product.id}`} className="font-medium hover:text-cutebae-coral">
-                            {item.product.name}
-                          </Link>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">₹{priceInRupees}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center justify-center">
-                          <Button 
-                            variant="outline" 
-                            size="icon" 
-                            className="h-8 w-8 rounded-full"
-                            onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                          >
-                            <Minus size={14} />
-                          </Button>
-                          <span className="w-10 text-center">{item.quantity}</span>
-                          <Button 
-                            variant="outline" 
-                            size="icon" 
-                            className="h-8 w-8 rounded-full"
-                            onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                          >
-                            <Plus size={14} />
-                          </Button>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right font-medium">₹{itemTotalInRupees}</TableCell>
-                      <TableCell>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="text-gray-500 hover:text-red-500"
-                          onClick={() => removeFromCart(item.product.id)}
+            <div className="space-y-6">
+              {cart.map((item) => (
+                <div key={item.product.id} className="flex gap-4 border-b pb-6">
+                  <div className="w-24 h-24 bg-gray-100 rounded overflow-hidden flex-shrink-0">
+                    <img 
+                      src={item.product.image} 
+                      alt={item.product.name} 
+                      className="w-full h-full object-cover object-center"
+                    />
+                  </div>
+                  <div className="flex-grow">
+                    <div className="flex justify-between">
+                      <h3 className="font-medium">{item.product.name}</h3>
+                      <p className="font-bold text-cutebae-coral">₹{Math.round(item.product.price * 83 * item.quantity)}</p>
+                    </div>
+                    <p className="text-sm text-gray-500 mt-1">{item.product.category}</p>
+                    <div className="flex justify-between items-center mt-4">
+                      <div className="flex items-center border rounded">
+                        <button 
+                          onClick={() => handleQuantityChange(item.product.id, item.quantity - 1)} 
+                          className="px-3 py-1 border-r"
                         >
-                          <Trash2 size={18} />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                          -
+                        </button>
+                        <span className="px-4 py-1">{item.quantity}</span>
+                        <button 
+                          onClick={() => handleQuantityChange(item.product.id, item.quantity + 1)} 
+                          className="px-3 py-1 border-l"
+                        >
+                          +
+                        </button>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        onClick={() => handleRemoveItem(item.product.id)} // Fixed parameters
+                        className="text-gray-500 hover:text-red-500"
+                      >
+                        <Trash2 size={16} />
+                        <span className="ml-1">Remove</span>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
             
-            <div className="mt-4 flex justify-between">
-              <Button variant="outline" onClick={clearCart}>
-                Clear Cart
+            <div className="flex justify-between mt-8">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/products')}
+                className="flex items-center"
+              >
+                <RefreshCcw size={16} className="mr-2" />
+                Continue Shopping
               </Button>
-              <Button variant="outline" asChild>
-                <Link to="/">Continue Shopping</Link>
+              <Button 
+                variant="outline" 
+                onClick={() => clearCart()} // Fixed parameters
+                className="text-gray-500"
+              >
+                Clear Cart
               </Button>
             </div>
           </div>
           
-          {/* Order Summary */}
-          <div className="bg-gray-50 rounded-lg p-6 h-fit">
-            <h2 className="text-xl font-bold mb-4">Order Summary</h2>
-            
-            <div className="space-y-3 mb-6">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Subtotal</span>
-                <span>₹{Math.round(cartTotal)}</span>
+          <div>
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+              
+              <div className="space-y-3 mb-6">
+                <div className="flex justify-between text-gray-600">
+                  <span>Subtotal</span>
+                  <span>₹{Math.round(subtotal * 83)}</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                  <span>Shipping</span>
+                  <span>{shippingCost === 0 ? 'Free' : `₹${shippingCost}`}</span>
+                </div>
+                <div className="border-t pt-3 flex justify-between font-bold">
+                  <span>Total</span>
+                  <span>₹{Math.round(total * 83)}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Shipping</span>
-                <span>{cartTotal > 1000 ? 'Free' : '₹99'}</span>
+              
+              <div className="mb-6">
+                <label htmlFor="coupon" className="block text-sm mb-2">Coupon Code</label>
+                <div className="flex">
+                  <Input 
+                    id="coupon" 
+                    value={coupon} 
+                    onChange={(e) => setCoupon(e.target.value)} 
+                    placeholder="Enter coupon code"
+                    className="rounded-r-none"
+                  />
+                  <Button className="rounded-l-none">Apply</Button>
+                </div>
               </div>
-              <div className="border-t pt-3 flex justify-between font-bold">
-                <span>Total</span>
-                <span>₹{Math.round(cartTotal + (cartTotal > 1000 ? 0 : 99))}</span>
-              </div>
-            </div>
-            
-            <Button className="w-full bg-cutebae-coral hover:bg-opacity-90">
-              Proceed to Checkout
-            </Button>
-            
-            <div className="mt-4 text-center text-sm text-gray-600">
-              <p>100% secure checkout</p>
+              
+              <Button 
+                onClick={handleCheckout}
+                className="w-full bg-cutebae-coral hover:bg-opacity-90"
+                size="lg"
+              >
+                Checkout
+                <ChevronRight size={16} className="ml-2" />
+              </Button>
+              
+              <p className="text-center text-xs text-gray-500 mt-4">
+                Shipping calculated at checkout. Payment options available on next step.
+              </p>
             </div>
           </div>
         </div>

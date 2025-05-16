@@ -43,7 +43,7 @@ export default function ProductPage() {
   };
   
   const handleAddToCart = () => {
-    addToCart(product, quantity);
+    addToCart(product, quantity); // Fixed to pass both product and quantity
   };
   
   return (
